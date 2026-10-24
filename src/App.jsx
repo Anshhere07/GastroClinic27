@@ -57,17 +57,47 @@ function SplashScreen({ onDone }) {
 
 
 
-const PAGE_TITLES = {
-  '/':             'Gastro Clinic 27 – Expert Digestive Care in Shahjahanpur',
-  '/about':        'About Us | Gastro Clinic 27',
-  '/clinics':      'Our Clinics | Gastro Clinic 27',
-  '/services':     'Our Services | Gastro Clinic 27',
-  '/appointment':  'Book Appointment | Gastro Clinic 27',
-  '/testimonials': 'Patient Reviews | Gastro Clinic 27',
-  '/contact':      'Contact Us | Gastro Clinic 27',
-  '/privacy':      'Privacy Policy | Gastro Clinic 27',
-  '/terms':        'Terms of Service | Gastro Clinic 27',
-  '/disclaimer':   'Medical Disclaimer | Gastro Clinic 27',
+const PAGE_METADATA = {
+  '/': {
+    title: 'Gastro Clinic 27 – Expert Digestive Care in Shahjahanpur',
+    description: 'Specialist gastroenterology, laparoscopic surgery and digestive care across 5 clinics in Shahjahanpur region. 50,000+ patients treated since 2019. Book an appointment online.',
+  },
+  '/about': {
+    title: 'About Us | Gastro Clinic 27',
+    description: 'Learn about Gastro Clinic 27, founded in 2019 in Shahjahanpur. Our NMC-registered surgical team holds FMAS, FIAGES, and DNB qualifications for trusted digestive healthcare.',
+  },
+  '/clinics': {
+    title: 'Our Clinics & OPD Schedule | Gastro Clinic 27',
+    description: 'Find Gastro Clinic 27 OPD timings, contact numbers, and addresses across 5 locations: Shahjahanpur, Nigohi, Shahabad, Tilhar, and Powayan.',
+  },
+  '/services': {
+    title: 'Specialist Digestive & Laparoscopic Services | Gastro Clinic 27',
+    description: 'Explore specialist digestive care at Gastro Clinic 27: laparoscopic surgery, gallbladder stone removal, piles and fissure treatment, and IBS management.',
+  },
+  '/appointment': {
+    title: 'Book an Appointment | Gastro Clinic 27',
+    description: 'Book a gastroenterology consultation online at any of our 5 clinic locations in Shahjahanpur district. Choose your preferred clinic, date, and consultation slot.',
+  },
+  '/testimonials': {
+    title: 'Patient Reviews & Testimonials | Gastro Clinic 27',
+    description: 'Read verified patient reviews and recovery stories from patients treated for gallbladder surgery, piles, hernia, and digestive ailments at Gastro Clinic 27.',
+  },
+  '/contact': {
+    title: 'Contact Us & Clinic Helplines | Gastro Clinic 27',
+    description: 'Get in touch with Gastro Clinic 27 in Shahjahanpur. View contact numbers, email, OPD schedules, emergency guidance, and frequently asked questions.',
+  },
+  '/privacy': {
+    title: 'Privacy Policy | Gastro Clinic 27',
+    description: 'Read the Gastro Clinic 27 privacy policy regarding patient information, medical data security, and communication guidelines.',
+  },
+  '/terms': {
+    title: 'Terms of Service | Gastro Clinic 27',
+    description: 'Read the terms of service, consultation guidelines, and appointment policies for Gastro Clinic 27.',
+  },
+  '/disclaimer': {
+    title: 'Medical Disclaimer | Gastro Clinic 27',
+    description: 'Important medical disclaimer for Gastro Clinic 27. Online information and AI guidance are for informational purposes and not a substitute for direct medical evaluation.',
+  },
 };
 
 function TitleUpdater() {
@@ -76,11 +106,30 @@ function TitleUpdater() {
     const normalizedPath = pathname.length > 1 && pathname.endsWith('/')
       ? pathname.slice(0, -1)
       : pathname;
-    const isKnownRoute = Object.prototype.hasOwnProperty.call(PAGE_TITLES, normalizedPath);
-    const title = PAGE_TITLES[normalizedPath] ?? 'Page Not Found | Gastro Clinic 27';
-    document.title = title;
+    const isKnownRoute = Object.prototype.hasOwnProperty.call(PAGE_METADATA, normalizedPath);
+    const meta = PAGE_METADATA[normalizedPath] ?? {
+      title: 'Page Not Found | Gastro Clinic 27',
+      description: 'The requested page could not be found on Gastro Clinic 27.',
+    };
 
-    // 1. Maintain accurate self-referential canonical URL
+    // 1. Title
+    document.title = meta.title;
+
+    // 2. Meta description & OpenGraph description
+    let descMeta = document.querySelector('meta[name="description"]');
+    if (!descMeta) {
+      descMeta = document.createElement('meta');
+      descMeta.setAttribute('name', 'description');
+      document.head.appendChild(descMeta);
+    }
+    descMeta.setAttribute('content', meta.description);
+
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) {
+      ogDesc.setAttribute('content', meta.description);
+    }
+
+    // 3. Maintain accurate self-referential canonical URL & og:url
     const canonicalPath = normalizedPath === '/' ? '/' : normalizedPath;
     const canonicalHref = `https://gastroclinic27.com${canonicalPath}`;
     let canonicalLink = document.querySelector('link[rel="canonical"]');
@@ -91,17 +140,17 @@ function TitleUpdater() {
     }
     canonicalLink.setAttribute('href', canonicalHref);
 
-    // 2. Keep OpenGraph metadata consistent
     const ogUrl = document.querySelector('meta[property="og:url"]');
     if (ogUrl) {
       ogUrl.setAttribute('content', canonicalHref);
     }
+
     const ogTitle = document.querySelector('meta[property="og:title"]');
     if (ogTitle) {
-      ogTitle.setAttribute('content', title);
+      ogTitle.setAttribute('content', meta.title);
     }
 
-    // 3. Prevent indexing of soft 404s for unknown routes
+    // 4. Prevent indexing of soft 404s for unknown routes
     let robotsMeta = document.querySelector('meta[name="robots"]');
     if (!isKnownRoute) {
       if (!robotsMeta) {
